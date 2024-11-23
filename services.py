@@ -26,3 +26,9 @@ class PaperService:
         # 根据标题获取论文, 这里仅仅获取第一条
         result = PaperService.papers[PaperService.papers['title'] == title]
         return result.to_dict(orient='records')[0]
+    
+    @staticmethod
+    def get_paper_by_category(category):
+        # 根据类别获取论文
+        results = PaperService.papers[PaperService.papers['category'] == category]
+        return results.to_dict(orient='records')

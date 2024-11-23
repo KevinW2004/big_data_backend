@@ -29,6 +29,15 @@ def get_paper_by_title():
     result = PaperService.get_paper_by_title(title)
     return jsonify(result), 200
 
+@app.route('/papers/get_by_category', methods=['GET'])
+def get_papers_by_category():
+    category = request.args.get('category')
+    print("开始获取，category: ", category)
+    if not category:
+        return jsonify({"error": "Category is required"}), 400
+    results = PaperService.get_papers_by_category(category)
+    return jsonify(results), 200
+
 
 if __name__ == '__main__':
     app.config.from_object(Config)
@@ -36,6 +45,5 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     app.run(debug=True)
-    
 
 
