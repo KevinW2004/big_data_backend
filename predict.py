@@ -8,33 +8,28 @@ from dgl.nn.pytorch import GraphConv
 from sklearn.metrics import f1_score
 
 
-# 数据加载函数
 def load_new_data(device):
     # 读取数据
     papers = pd.read_csv('./dataset/papers.csv')
     features = pd.read_csv('./dataset/node-feat.csv', header=None).values.astype(np.float32)
     edges = pd.read_csv('./dataset/edge.csv', header=None).values.T.astype(np.int32)
 
-    # 提取边信息
+
     src, dst = edges[0], edges[1]
 
-    # 构建图
     graph = dgl.graph((src, dst), num_nodes=len(features))
     graph = dgl.to_bidirected(graph)
     graph = dgl.add_self_loop(graph).to(device)
 
-    # 处理标签和年份
     papers['category'] = papers['category'].replace('Unknown', -1)  # 将 Unknown 替换为占位符
     papers['category'] = papers['category'].astype('category').cat.codes
     labels = papers['category'].values
     years = papers['year'].values
 
-    # 按年份划分数据集
     train_mask = (years <= 2017)
     val_mask = (years == 2018)
     test_mask = (years >= 2019)
 
-    # 转换为 Tensor
     features = torch.tensor(features, dtype=torch.float32).to(device)
     labels = torch.tensor(labels, dtype=torch.long).to(device)
     train_mask = torch.tensor(train_mask, dtype=torch.bool).to(device)
@@ -47,7 +42,6 @@ def load_new_data(device):
     return graph, features, labels, train_mask, val_mask, test_mask, papers
 
 
-# 模型定义与训练代码复用
 class GCN(nn.Module):
     def __init__(self, input_dim, hidden_sizes, num_classes):
         super(GCN, self).__init__()
@@ -126,7 +120,7 @@ def main():
         papers.loc[test_mask.cpu().numpy(), 'category'] = predictions.cpu().numpy()
 
     # 保存补全后的文档
-    papers['category'] = papers['category'].astype('category').cat.codes  # 恢复类别格式
+    papers['category'] = papers['category'].astype('category').cat.codes
     papers.to_csv('./dataset/papers_with_predictions.csv', index=False)
     print("Predictions saved to './dataset/papers_with_predictions.csv'")
 
