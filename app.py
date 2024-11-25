@@ -97,6 +97,14 @@ def get_papers_by_category():
     results = PaperService.get_papers_by_category(category)
     return jsonify(results), 200
 
+@app.route("/papers/get_citations", methods=["GET"])
+def get_citations():
+    title = request.args.get("title")
+    print("开始获取引用，title: ", title)
+    if not title:
+        return jsonify({"error": "Title is required"}), 400
+    results = PaperService.get_citations(title)
+    return jsonify(results), 200
 
 if __name__ == '__main__':
     app.config.from_object(Config)
@@ -105,4 +113,7 @@ if __name__ == '__main__':
     jwt = JWTManager(app)
     with app.app_context():
         db.create_all()
+    PaperService.init()
     app.run(debug=True)
+
+
