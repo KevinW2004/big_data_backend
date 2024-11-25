@@ -1,5 +1,7 @@
-from models import db, User
+from models import db, User, bcrypt
 import pandas as pd
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+
 import json
 import os
 import numpy as np
@@ -8,11 +10,42 @@ import numpy as np
 class UserService:
     @staticmethod
     def create_user(username, email, password):
+        if User.query.filter_by(username=username).first():
+            print(User.query.filter_by(username=username).first().username)
+            return {'msg': 'username already exists', 'code': 400}
         user = User(username=username, email=email, password=password)
+
         db.session.add(user)
         db.session.commit()
-        return user
+        return {'msg': "success", 'code': 200}
 
+    @staticmethod
+    def login(username, password):
+        user = User.query.filter_by(username=username).first()
+        print("check password")
+        if user.check_password(password):
+            access_token = create_access_token(identity=username)
+            return {'access_token': access_token, 'code': 200}
+        else:
+            return {'msg': 'wrong password', 'code': 400}
+
+    @staticmethod
+    def get_user(username):
+        user = User.query.filter_by(username=username).first()
+        if user:
+            return {'username': username, 'role': user.role, 'code': 200}
+        else:
+            return {'msg': 'User not found', 'code': 400}
+
+    @staticmethod
+    def upgrade(username):
+        user = User.query.filter_by(username=username).first()
+        if user.role != 'VIP':
+            user.role = 'VIP'
+            db.session.commit()
+            return {'msg': 'successfully upgrade', 'code': 200}
+        else:
+            return {'msg': 'Already', 'code': 400}
 
 class PaperService:
     dataset_path = "./dataset/papers.csv"
