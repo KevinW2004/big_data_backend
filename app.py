@@ -24,7 +24,7 @@ def register():
     print("username:", username)
     print("password:", password)
     results = UserService.create_user(username, email, password)
-    if results.get('code')==200:
+    if results.get('code') == 200:
         return jsonify(results), 200
     else:
         return jsonify(results), 400
@@ -59,7 +59,7 @@ def get_user_info():
 @jwt_required()
 def upgrade():
     current_user = get_jwt_identity()
-    results=UserService.upgrade(current_user)
+    results = UserService.upgrade(current_user)
     if results.get('code') == 200:
         return jsonify(results), 200
     else:
@@ -67,6 +67,7 @@ def upgrade():
 
 
 @app.route('/papers/search', methods=['GET'])
+@jwt_required()
 def search_papers():
     keyword = request.args.get('keyword')
     print("开始搜索，keyword: ", keyword)
@@ -97,7 +98,9 @@ def get_papers_by_category():
     results = PaperService.get_papers_by_category(category)
     return jsonify(results), 200
 
+
 @app.route("/papers/get_citations", methods=["GET"])
+@jwt_required()
 def get_citations():
     title = request.args.get("title")
     print("开始获取引用，title: ", title)
@@ -105,6 +108,7 @@ def get_citations():
         return jsonify({"error": "Title is required"}), 400
     results = PaperService.get_citations(title)
     return jsonify(results), 200
+
 
 if __name__ == '__main__':
     app.config.from_object(Config)
@@ -115,5 +119,3 @@ if __name__ == '__main__':
         db.create_all()
     PaperService.init()
     app.run(debug=True)
-
-
