@@ -67,6 +67,7 @@ def upgrade():
 
 
 @app.route('/papers/search', methods=['GET'])
+@jwt_required()
 def search_papers():
     keyword = request.args.get('keyword')
     print("开始搜索，keyword: ", keyword)
@@ -98,7 +99,13 @@ def get_papers_by_category():
     return jsonify(results), 200
 
 @app.route("/papers/get_citations", methods=["GET"])
+@jwt_required()
 def get_citations():
+    # VIP专属
+    username = get_jwt_identity()
+    user = User.query.filter_by(username=username).first()
+    if user.role == "BASIC":
+        return jsonify({"error": "此为VIP专属功能，请升级VIP后使用"}), 201
     title = request.args.get("title")
     print("开始获取引用，title: ", title)
     if not title:
