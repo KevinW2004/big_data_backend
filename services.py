@@ -47,11 +47,14 @@ class UserService:
         else:
             return {'msg': 'Already', 'code': 400}
 
+import faiss
 class PaperService:
     dataset_path = "./dataset/papers.csv"
     papers = pd.read_csv(dataset_path)
+    feats = pd.read_csv(f'./dataset/feats.csv.gz', compression='gzip', header=None).values.astype(np.float32)
     title_to_index = {}
     citations = {}
+    faiss_index = None
 
     @staticmethod
     def init():
@@ -75,6 +78,20 @@ class PaperService:
             if cite not in PaperService.citations:
                 PaperService.citations[cite] = []
             PaperService.citations[cite].append(cited)
+        # 3. 创建faiss索引
+        # index = faiss.IndexFlatIP(PaperService.feats.shape[1])
+        PaperService.faiss_index = faiss.IndexFlatL2(128)  # 使用 L2 距离的平面索引
+        PaperService.faiss_index.add(PaperService.feats)
+        
+    @staticmethod
+    def get_similar_papers(title, k=5):
+        # 根据标题获取相似论文
+        src_id = PaperService.title_to_index[title]
+        query_vec = PaperService.feats[src_id]
+        distances, indices = PaperService.faiss_index.search(query_vec.reshape(1, -1), k)
+        print(distances, indices)
+        similar_papers = PaperService.papers.iloc[indices[0]].to_dict(orient="records")
+        return similar_papers
 
     @staticmethod
     def search_papers(keyword):
