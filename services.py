@@ -88,9 +88,11 @@ class PaperService:
         # 根据标题获取相似论文
         src_id = PaperService.title_to_index[title]
         query_vec = PaperService.feats[src_id]
-        distances, indices = PaperService.faiss_index.search(query_vec.reshape(1, -1), k)
+        distances, indices = PaperService.faiss_index.search(query_vec.reshape(1, -1), k+1)
         print(distances, indices)
         similar_papers = PaperService.papers.iloc[indices[0]].to_dict(orient="records")
+        # 去除自身
+        similar_papers = [p for p in similar_papers if p["title"]!= title][:k]
         return similar_papers
 
     @staticmethod

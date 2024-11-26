@@ -114,6 +114,21 @@ def get_citations():
     results = PaperService.get_citations(title)
     return jsonify(results), 200
 
+@app.route('/papers/get_similar', methods=['GET'])
+@jwt_required()
+def get_similar_papers():
+    # VIP专属
+    username = get_jwt_identity()
+    user = User.query.filter_by(username=username).first()
+    if user.role == "BASIC":
+        return jsonify({"error": "此为VIP专属功能，请升级VIP后使用"}), 201
+    title = request.args.get('title')
+    print("开始获取相似，title: ", title)
+    if not title:
+        return jsonify({"error": "Title is required"}), 400
+    results = PaperService.get_similar_papers(title, k=10)
+    return jsonify(results), 200
+
 
 if __name__ == '__main__':
     app.config.from_object(Config)
