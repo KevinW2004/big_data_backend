@@ -30,14 +30,17 @@ class User(db.Model):
         return check_password_hash(self.password, password)  # 验证密码
 
 
+db_time = datetime.now
+
+
 class ViewHistory(db.Model):
     __tablename__ = 'view_history'
 
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     title = db.Column(db.String(255), nullable=False)
-    access_time = db.Column(db.DateTime, default=datetime.utcnow)
+    access_time = db.Column(db.DateTime, default=db_time)
 
-    def __init__(self,user_id,title):
-        self.user_id=user_id
-        self.title=title
+    def __init__(self, user_id, title):
+        self.user_id = user_id
+        self.title = title
