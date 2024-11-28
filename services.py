@@ -1,10 +1,11 @@
-from models import db, User, bcrypt
+from models import db, User, bcrypt, ViewHistory
 import pandas as pd
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 
 import json
 import os
 import numpy as np
+import faiss
 
 
 class UserService:
@@ -47,7 +48,7 @@ class UserService:
         else:
             return {'msg': 'Already', 'code': 400}
 
-import faiss
+
 class PaperService:
     dataset_path = "./dataset/papers.csv"
     papers = pd.read_csv(dataset_path)
@@ -82,17 +83,17 @@ class PaperService:
         # index = faiss.IndexFlatIP(PaperService.feats.shape[1])
         PaperService.faiss_index = faiss.IndexFlatL2(128)  # 使用 L2 距离的平面索引
         PaperService.faiss_index.add(PaperService.feats)
-        
+
     @staticmethod
     def get_similar_papers(title, k=5):
         # 根据标题获取相似论文
         src_id = PaperService.title_to_index[title]
         query_vec = PaperService.feats[src_id]
-        distances, indices = PaperService.faiss_index.search(query_vec.reshape(1, -1), k+1)
+        distances, indices = PaperService.faiss_index.search(query_vec.reshape(1, -1), k + 1)
         print(distances, indices)
         similar_papers = PaperService.papers.iloc[indices[0]].to_dict(orient="records")
         # 去除自身
-        similar_papers = [p for p in similar_papers if p["title"]!= title][:k]
+        similar_papers = [p for p in similar_papers if p["title"] != title][:k]
         return similar_papers
 
     @staticmethod
@@ -128,3 +129,19 @@ class PaperService:
         cited_ids = PaperService.citations.get(citer_id, [])
         cited_papers = PaperService.papers.iloc[cited_ids]
         return cited_papers.to_dict(orient="records")
+
+    @staticmethod
+    def add_record(title, user_id):
+        if not title:
+            return {'msg': "title is null", 'code': 400}
+        viewHistory = ViewHistory(user_id, title)
+        db.session.add(viewHistory)
+        db.session.commit()
+        return {'msg': 'success', 'code': 200}
+
+    @staticmethod
+    def get_paper_history(user_id):
+        history_records = ViewHistory.query.filter_by(user_id = user_id).order_by(
+            ViewHistory.access_time.desc()).limit(20).all()
+        history = [{"title": record.title} for record in history_records]
+        return {"msg": history, "code": 200}

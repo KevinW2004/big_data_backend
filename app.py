@@ -114,6 +114,7 @@ def get_citations():
     results = PaperService.get_citations(title)
     return jsonify(results), 200
 
+
 @app.route('/papers/get_similar', methods=['GET'])
 @jwt_required()
 def get_similar_papers():
@@ -128,6 +129,36 @@ def get_similar_papers():
         return jsonify({"error": "Title is required"}), 400
     results = PaperService.get_similar_papers(title, k=10)
     return jsonify(results), 200
+
+
+@app.route('/paper/addRecord', methods=['POST'])
+@jwt_required()
+# 接收一个参数：title
+def update_history():
+    username = get_jwt_identity()
+    user = User.query.filter_by(username=username).first()
+    user_id = user.id
+    print(user_id)
+    title = request.args.get("title")
+    results = PaperService.add_record(title, user_id)
+    if results.get('code') == 200:
+        return jsonify(results), 200
+    else:
+        return jsonify(results), 400
+
+
+@app.route('/paper/getHistory', methods=['GET'])
+@jwt_required()
+# 无需任何参数
+def get_history():
+    username = get_jwt_identity()
+    user = User.query.filter_by(username=username).first()
+    user_id = user.id
+    results = PaperService.get_paper_history(user_id)
+    if results.get('code') == 200:
+        return jsonify(results), 200
+    else:
+        return jsonify(results), 400
 
 
 if __name__ == '__main__':

@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -26,3 +28,16 @@ class User(db.Model):
 
     def check_password(self, password):
         return check_password_hash(self.password, password)  # 验证密码
+
+
+class ViewHistory(db.Model):
+    __tablename__ = 'view_history'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    title = db.Column(db.String(255), nullable=False)
+    access_time = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __init__(self,user_id,title):
+        self.user_id=user_id
+        self.title=title
