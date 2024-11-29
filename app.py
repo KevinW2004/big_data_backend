@@ -147,11 +147,13 @@ def update_history():
         return jsonify(results), 400
 
 
-@app.route("/paper/getHistory", methods=["GET"])
+@app.route("/papers/getHistory", methods=["GET"])
 @jwt_required()
 # 无需任何参数
 def get_history():
+    print("开始获取历史记录")
     username = get_jwt_identity()
+    print(username)
     user = User.query.filter_by(username=username).first()
     user_id = user.id
     results = PaperService.get_paper_history(user_id)
@@ -161,7 +163,7 @@ def get_history():
         return jsonify(results), 400
 
 
-@app.route("/paper/get_recommendations", methods=["GET"])
+@app.route("/papers/get_recommendations", methods=["GET"])
 @jwt_required()
 def get_recommendations():
     # VIP专属
