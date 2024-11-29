@@ -131,7 +131,7 @@ def get_similar_papers():
     return jsonify(results), 200
 
 
-@app.route("/paper/addRecord", methods=["POST"])
+@app.route('/papers/addRecord', methods=['POST'])
 @jwt_required()
 # 接收一个参数：title
 def update_history():
@@ -147,7 +147,7 @@ def update_history():
         return jsonify(results), 400
 
 
-@app.route("/papers/getHistory", methods=["GET"])
+@app.route('/papers/getHistory', methods=['GET'])
 @jwt_required()
 # 无需任何参数
 def get_history():
