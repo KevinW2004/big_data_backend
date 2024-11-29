@@ -9,67 +9,67 @@ app = Flask(__name__)
 CORS(app)
 
 
-@app.route('/')
+@app.route("/")
 def hello():
-    return 'Hello, World!'
+    return "Hello, World!"
 
 
-@app.route('/user/register', methods=['POST'])
+@app.route("/user/register", methods=["POST"])
 def register():
     data = request.get_json()
     # 如果用户名已经存在，会返回400
-    username = data.get('username')
-    email = data.get('email')
-    password = data.get('password')
+    username = data.get("username")
+    email = data.get("email")
+    password = data.get("password")
     print("username:", username)
     print("password:", password)
     results = UserService.create_user(username, email, password)
-    if results.get('code') == 200:
+    if results.get("code") == 200:
         return jsonify(results), 200
     else:
         return jsonify(results), 400
 
 
-@app.route('/user/login', methods=['POST'])
+@app.route("/user/login", methods=["POST"])
 def login():
     data = request.get_json()
 
-    username = data.get('username')
-    password = data.get('password')
+    username = data.get("username")
+    password = data.get("password")
 
     results = UserService.login(username, password)
-    if results.get('code') == 200:
+    if results.get("code") == 200:
         return jsonify(results), 200
     else:
         return jsonify(results), 400
 
 
-@app.route('/user', methods=['GET'])
+@app.route("/user", methods=["GET"])
 @jwt_required()
 def get_user_info():
     current_user = get_jwt_identity()
     results = UserService.get_user(current_user)
-    if results.get('code') == 200:
+    if results.get("code") == 200:
         return jsonify(results), 200
     else:
         return jsonify(results), 400
 
 
-@app.route('/user/upgrade', methods=['GET'])
+@app.route("/user/upgrade", methods=["GET"])
 @jwt_required()
 def upgrade():
     current_user = get_jwt_identity()
     results = UserService.upgrade(current_user)
-    if results.get('code') == 200:
+    if results.get("code") == 200:
         return jsonify(results), 200
     else:
         return jsonify(results), 400
 
 
-@app.route('/papers/search', methods=['GET'])
+@app.route("/papers/search", methods=["GET"])
 @jwt_required()
 def search_papers():
-    keyword = request.args.get('keyword')
+    keyword = request.args.get("keyword")
     print("开始搜索，keyword: ", keyword)
     if not keyword:
         return jsonify({"error": "Keyword is required"}), 400
@@ -77,10 +77,10 @@ def search_papers():
     return jsonify(results), 200
 
 
-@app.route('/papers/get_by_title', methods=['GET'])
+@app.route("/papers/get_by_title", methods=["GET"])
 @jwt_required()
 def get_paper_by_title():
-    title = request.args.get('title')
+    title = request.args.get("title")
     print("开始获取，title: ", title)
     if not title:
         return jsonify({"error": "Title is required"}), 400
@@ -88,10 +88,10 @@ def get_paper_by_title():
     return jsonify(result), 200
 
 
-@app.route('/papers/get_by_category', methods=['GET'])
+@app.route("/papers/get_by_category", methods=["GET"])
 @jwt_required()
 def get_papers_by_category():
-    category = request.args.get('category')
+    category = request.args.get("category")
     print("开始获取，category: ", category)
     if not category:
         return jsonify({"error": "Category is required"}), 400
@@ -115,7 +115,7 @@ def get_citations():
     return jsonify(results), 200
 
 
-@app.route('/papers/get_similar', methods=['GET'])
+@app.route("/papers/get_similar", methods=["GET"])
 @jwt_required()
 def get_similar_papers():
     # VIP专属
@@ -123,7 +123,7 @@ def get_similar_papers():
     user = User.query.filter_by(username=username).first()
     if user.role == "BASIC":
         return jsonify({"error": "此为VIP专属功能，请升级VIP后使用"}), 201
-    title = request.args.get('title')
+    title = request.args.get("title")
     print("开始获取相似，title: ", title)
     if not title:
         return jsonify({"error": "Title is required"}), 400
@@ -141,7 +141,7 @@ def update_history():
     print(user_id)
     title = request.args.get("title")
     results = PaperService.add_record(title, user_id)
-    if results.get('code') == 200:
+    if results.get("code") == 200:
         return jsonify(results), 200
     else:
         return jsonify(results), 400
@@ -155,13 +155,25 @@ def get_history():
     user = User.query.filter_by(username=username).first()
     user_id = user.id
     results = PaperService.get_paper_history(user_id)
-    if results.get('code') == 200:
+    if results.get("code") == 200:
         return jsonify(results), 200
     else:
         return jsonify(results), 400
 
 
-if __name__ == '__main__':
+@app.route("/paper/get_recommendations", methods=["GET"])
+@jwt_required()
+def get_recommendations():
+    # VIP专属
+    username = get_jwt_identity()
+    user = User.query.filter_by(username=username).first()
+    if user.role == "BASIC":
+        return jsonify({"error": "此为VIP专属功能，请升级VIP后使用"}), 201
+    results = PaperService.get_recommendations(user.id)
+    return jsonify(results), 200
+
+
+if __name__ == "__main__":
     app.config.from_object(Config)
     db.init_app(app)
     bcrypt.init_app(app)

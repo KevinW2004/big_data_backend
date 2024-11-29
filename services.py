@@ -145,3 +145,18 @@ class PaperService:
             ViewHistory.access_time.desc()).limit(20).all()
         history = [{"title": record.title} for record in history_records]
         return {"msg": history, "code": 200}
+    
+    @staticmethod
+    def get_recommendations(user_id):
+        history_records = ViewHistory.query.filter_by(user_id = user_id).order_by(
+            ViewHistory.access_time.desc()).limit(10).all()
+        history_titles = [record.title for record in history_records]
+        recommend_papers = []
+        if len(history_titles) == 0: # 无历史记录，随机推荐
+            recommend_papers = PaperService.papers.sample(n=10).tolist()
+        else:
+            for title in history_titles:
+                similar_papers = PaperService.get_similar_papers(title, k=8)
+                recommend_papers.extend(similar_papers)
+            recommend_papers = list(set(recommend_papers)) # 去重
+        return recommend_papers.to_dict(orient="records")
