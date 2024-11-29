@@ -158,5 +158,11 @@ class PaperService:
             for title in history_titles:
                 similar_papers = PaperService.get_similar_papers(title, k=8)
                 recommend_papers.extend(similar_papers)
-            recommend_papers = list(set(recommend_papers)) # 去重
-        return recommend_papers.to_dict(orient="records")
+        recommend_papers = recommend_papers
+        # 去重
+        unique_papers = {}
+        for paper in recommend_papers:
+            unique_papers[paper['title']] = paper
+        recommend_papers = list(unique_papers.values())  # 得到去重后的值
+        print(recommend_papers)
+        return recommend_papers
