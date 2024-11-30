@@ -127,7 +127,7 @@ def get_similar_papers():
     print("开始获取相似，title: ", title)
     if not title:
         return jsonify({"error": "Title is required"}), 400
-    results = PaperService.get_similar_papers(title, k=10)
+    results = PaperService.get_similar_papers(title, k=18)
     return jsonify(results), 200
 
 
