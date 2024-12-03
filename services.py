@@ -20,7 +20,7 @@ class UserService:
             print(User.query.filter_by(username=username).first().username)
             return {"msg": "username already exists", "code": 400}
         user = User(username=username, email=email, password=password)
-
+        user.get_original_email()
         db.session.add(user)
         db.session.commit()
         return {"msg": "success", "code": 200}

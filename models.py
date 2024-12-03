@@ -4,8 +4,12 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from werkzeug.security import generate_password_hash, check_password_hash
 
+from util import encrypt_email, decrypt_email
+
 db = SQLAlchemy()
 bcrypt = Bcrypt()
+
+db_time = datetime.now
 
 
 class User(db.Model):
@@ -16,11 +20,11 @@ class User(db.Model):
     email = db.Column(db.String(255), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
     role = db.Column(db.String(50), nullable=False, default='BASIC')
-    created_time = db.Column(db.DateTime, server_default=db.func.now())
+    created_time = db.Column(db.DateTime, default=db_time)
 
     def __init__(self, username, email, password, role="BASIC"):
         self.username = username
-        self.email = generate_password_hash(email)  # 实现加密存储
+        self.email = encrypt_email(email)  # 实现加密存储
         print(self.email)
         self.password = generate_password_hash(password)
         print(self.password)
@@ -29,8 +33,9 @@ class User(db.Model):
     def check_password(self, password):
         return check_password_hash(self.password, password)  # 验证密码
 
-
-db_time = datetime.now
+    def get_original_email(self):
+        print(decrypt_email(self.email))
+        return decrypt_email(self.email)
 
 
 class ViewHistory(db.Model):

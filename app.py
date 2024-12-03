@@ -33,10 +33,8 @@ def register():
 @app.route("/user/login", methods=["POST"])
 def login():
     data = request.get_json()
-
     username = data.get("username")
     password = data.get("password")
-
     results = UserService.login(username, password)
     if results.get("code") == 200:
         return jsonify(results), 200
